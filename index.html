@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mayo Clinic Patient Safety Platform</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #eef1f7;
+  color: #1a2332;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 240px;
+  background: #c8d6e8;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebar-logo {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-text { font-size: 20px; font-weight: 800; color: #0d1b2a; letter-spacing: 0.5px; }
+
+.sidebar-nav { flex: 1; padding: 10px 0; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: #2a3a4e;
+  transition: background 0.12s;
+  line-height: 1.35;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.35); }
+
+.nav-item.active {
+  background: white;
+  border-radius: 8px 0 0 8px;
+  margin-left: 10px;
+  padding-left: 12px;
+  font-weight: 600;
+  color: #0d1b2a;
+  box-shadow: 1px 0 0 0 #c8d6e8;
+}
+
+.nav-icon { width: 17px; height: 17px; flex-shrink: 0; }
+
+.sidebar-toggle {
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 26px; height: 26px;
+  background: #3a5cb8;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: white; font-size: 13px; z-index: 10;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* ── Main area ── */
+.main-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── Header ── */
+.header {
+  background: #3550b5;
+  color: white;
+  padding: 0 18px;
+  height: 50px;
+  display: flex; align-items: center; gap: 14px;
+  flex-shrink: 0;
+}
+
+.header-search {
+  flex: 1;
+  background: rgba(255,255,255,0.13);
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  color: white; font-size: 13px;
+}
+.header-search::placeholder { color: rgba(255,255,255,0.55); }
+.header-search:focus { outline: none; background: rgba(255,255,255,0.2); }
+
+.hdr-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.2); }
+
+.hdr-date, .hdr-region {
+  font-size: 12.5px; display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.hdr-label { opacity: 0.7; }
+.hdr-caret { opacity: 0.7; margin-left: 2px; font-size: 10px; }
+
+.hdr-btn {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px; cursor: pointer; position: relative;
+}
+.hdr-btn:hover { background: rgba(255,255,255,0.15); }
+
+.notif-badge {
+  position: absolute; top: -3px; right: -5px;
+  background: #ef4444; color: white;
+  font-size: 9.5px; font-weight: 700;
+  border-radius: 10px; padding: 1px 4px; min-width: 17px; text-align: center;
+}
+
+.dark-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(255,255,255,0.13);
+  border-radius: 20px; padding: 4px 10px; cursor: pointer; font-size: 12px;
+}
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 22px 26px; }
+
+.page-title { font-size: 26px; font-weight: 700; color: #0d1b2a; margin-bottom: 3px; }
+.page-subtitle { font-size: 13.5px; color: #5e6e82; margin-bottom: 22px; }
+
+/* ── Table card ── */
+.table-card {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #e6ecf3;
+}
+.card-title { font-size: 15.5px; font-weight: 600; color: #0d1b2a; }
+.card-controls { display: flex; align-items: center; gap: 16px; }
+
+.ctrl-date, .ctrl-region {
+  font-size: 12.5px; color: #4a5568;
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+}
+
+.search-bar { padding: 10px 20px; border-bottom: 1px solid #e6ecf3; }
+.search-input {
+  width: 100%; max-width: 480px;
+  border: 1px solid #d2dae6; border-radius: 6px;
+  padding: 7px 12px; font-size: 13px; color: #444;
+  background: #fafbfd;
+}
+.search-input:focus { outline: none; border-color: #4a7cd6; }
+
+/* ── Table ── */
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  text-align: left;
+  padding: 9px 8px;
+  font-size: 12.5px; font-weight: 600; color: #3a4a5c;
+  border-bottom: 2px solid #dde4ee;
+  white-space: nowrap; user-select: none;
+}
+.sort-icon { opacity: 0.45; font-size: 9px; margin-left: 3px; }
+
+tbody tr { border-bottom: 1px solid #edf1f7; }
+tbody tr:hover { background: #f7f9fd; }
+tbody tr.is-expanded { background: #f2f6fb; }
+
+tbody td {
+  padding: 11px 8px; font-size: 13px; color: #2d3748; vertical-align: middle;
+}
+
+/* Fixed narrow columns */
+thead th:nth-child(1) { width: 28px; padding-left: 8px; padding-right: 4px; }
+thead th:nth-child(2) { width: 80px; }
+thead th:nth-child(3) { width: 90px; }
+thead th:nth-child(4) { width: 150px; }
+thead th:nth-child(5) { min-width: 200px; }
+thead th:nth-child(6) { width: 90px; }
+thead th:nth-child(7) { width: 80px; text-align: center; }
+thead th:nth-child(8) { width: 80px; text-align: center; }
+thead th:nth-child(9) { width: 65px; }
+thead th:nth-child(10) { width: 90px; }
+
+.expand-btn {
+  cursor: pointer; color: #5a6b80; font-size: 11px;
+  width: 18px; display: inline-block; text-align: center;
+}
+
+.event-link {
+  color: #2563eb; font-weight: 500; cursor: pointer; text-decoration: none;
+}
+.event-link:hover { text-decoration: underline; }
+
+.mrn-blk {
+  background: #111; color: #111; border-radius: 3px;
+  display: inline-block; width: 70px; height: 14px;
+  vertical-align: middle;
+}
+
+.dot {
+  width: 17px; height: 17px; border-radius: 50%; display: inline-block;
+}
+.dot.high { background: #dc2626; }
+.dot.medium { background: #f59e0b; }
+.dot.low { background: #10b981; }
+
+.cat-link { color: #7c3aed; cursor: pointer; font-size: 13px; }
+.cat-link:hover { text-decoration: underline; }
+
+.review-btn {
+  border: 1.5px solid #b0bed0; background: white; color: #2d3748;
+  padding: 4px 9px; border-radius: 6px; font-size: 11.5px;
+  cursor: pointer; white-space: nowrap; transition: all 0.12s;
+}
+.review-btn:hover { background: #f0f4fb; border-color: #8098b8; }
+
+/* ── Expanded detail panel ── */
+.detail-cell { padding: 0 !important; background: #f8fafd; }
+.detail-panel { border-top: 1px solid #dde4ee; }
+
+.det-top { padding: 18px 22px; border-bottom: 1px solid #dde4ee; }
+
+.det-agents {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.det-agent-col {
+  padding: 18px 18px;
+  border-right: 1px solid #dde4ee;
+}
+.det-agent-col:last-child { border-right: none; }
+
+.det-title { font-size: 14.5px; font-weight: 600; color: #0d1b2a; margin-bottom: 3px; }
+.det-source { font-size: 11.5px; color: #8a99aa; margin-bottom: 12px; }
+
+.desc-box {
+  background: #edf2f9; border: 1px solid #d5dfe9;
+  border-radius: 6px; padding: 13px; font-size: 13px; line-height: 1.6; color: #2d3748;
+}
+
+.ai-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.ai-badge {
+  width: 22px; height: 22px; background: #3b82f6; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.ai-sub { font-size: 11.5px; color: #8a99aa; margin-bottom: 16px; }
+
+.ai-field { margin-bottom: 15px; }
+.ai-label { font-size: 13px; font-weight: 600; color: #1a2332; margin-bottom: 5px; }
+.ai-val { font-size: 13px; color: #3a4a5c; line-height: 1.6; }
+.ai-like { display: flex; align-items: center; gap: 8px; }
+.ai-cat { color: #7c3aed; font-size: 13px; }
+.ai-bullets { padding-left: 18px; }
+.ai-bullets li { font-size: 13px; color: #3a4a5c; margin-bottom: 3px; }
+
+.table-footer {
+  padding: 11px 20px; font-size: 12.5px; color: #7a8a9d;
+  border-top: 1px solid #e6ecf3;
+}
+
+/* ── Harm level badge ── */
+.harm-badge {
+  display: inline-block; padding: 3px 9px;
+  border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.harm-badge.high   { background: #fee2e2; color: #dc2626; }
+.harm-badge.medium { background: #fef3c7; color: #d97706; }
+.harm-badge.low    { background: #d1fae5; color: #059669; }
+
+/* ── Per-agent feedback widget ── */
+.feedback-widget {
+  margin-top: 16px; padding-top: 14px;
+  border-top: 1px solid #e6ecf3;
+}
+.feedback-question { font-size: 12px; color: #5e6e82; margin-bottom: 7px; }
+.feedback-btns { display: flex; gap: 6px; }
+.fb-btn {
+  width: 30px; height: 30px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 1.5px solid; transition: all 0.12s; flex-shrink: 0;
+}
+.fb-btn.yes { color: #16a34a; border-color: #86efac; background: #f0fdf4; }
+.fb-btn.yes:hover { background: #dcfce7; }
+.fb-btn.no  { color: #dc2626; border-color: #fca5a5; background: #fff7f7; }
+.fb-btn.no:hover  { background: #fee2e2; }
+.fb-correction { margin-top: 10px; }
+.fb-select, .fb-note {
+  width: 100%; padding: 5px 8px;
+  border: 1px solid #d2dae6; border-radius: 5px;
+  font-size: 12px; color: #2d3748; margin-bottom: 7px;
+}
+.fb-note { resize: vertical; min-height: 52px; font-family: inherit; }
+.fb-submit {
+  padding: 5px 14px; background: #3550b5; color: white;
+  border: none; border-radius: 5px; font-size: 12px; cursor: pointer;
+}
+.fb-submit:hover { background: #2a3e9a; }
+.fb-confirm { font-size: 12.5px; color: #16a34a; font-weight: 600; padding: 4px 0; }
+</style>
+</head>
+<body>
+
+<!-- ─── Sidebar ─── -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <!-- Logo: two overlapping squares -->
+    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+      <rect x="2" y="6" width="15" height="15" rx="2.5" stroke="#1a2332" stroke-width="2" fill="none"/>
+      <rect x="10" y="12" width="15" height="15" rx="2.5" stroke="#1a2332" stroke-width="2" fill="#c8d6e8"/>
+    </svg>
+    <span class="logo-text">MCSP</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <rect x="1" y="9" width="4" height="7" rx="1" fill="#0d1b2a"/>
+        <rect x="7" y="6" width="4" height="10" rx="1" fill="#0d1b2a"/>
+        <rect x="13" y="2" width="4" height="14" rx="1" fill="#0d1b2a"/>
+      </svg>
+      Dashboard Home
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <rect x="1" y="1" width="7" height="7" rx="1.2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <rect x="10" y="1" width="7" height="7" rx="1.2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <rect x="1" y="10" width="7" height="7" rx="1.2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <rect x="10" y="10" width="7" height="7" rx="1.2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+      </svg>
+      All Incidents
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <circle cx="9" cy="9" r="7" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <path d="M9 4v5l3.5 2" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Triage &amp; Trend Analysis
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <polyline points="1,15 5,9 8,12 12,5 17,8" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      Impact Analysis
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="1" width="14" height="16" rx="2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <line x1="5" y1="6" x2="13" y2="6" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="5" y1="9" x2="13" y2="9" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="5" y1="12" x2="9" y2="12" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Documentation &amp;<br>Recommendations
+    </div>
+    <div class="nav-item">
+      <svg class="nav-icon" viewBox="0 0 18 18" fill="none">
+        <rect x="2" y="1" width="14" height="16" rx="2" stroke="#3a4a5c" stroke-width="1.5" fill="none"/>
+        <line x1="5" y1="6" x2="13" y2="6" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="5" y1="9" x2="10" y2="9" stroke="#3a4a5c" stroke-width="1.5" stroke-linecap="round"/>
+        <polyline points="12,11 14,13 12,15" stroke="#3a4a5c" stroke-width="1.3" stroke-linecap="round" fill="none"/>
+      </svg>
+      Feedback &amp; Audit
+    </div>
+  </nav>
+
+  <div class="sidebar-toggle">‹</div>
+</div>
+
+<!-- ─── Main ─── -->
+<div class="main-area">
+
+  <!-- Header -->
+  <header class="header">
+    <input class="header-search" type="text" placeholder="Global search (Incident, keyword, tag)">
+
+    <div class="hdr-date">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <rect x="1" y="2" width="13" height="12" rx="1.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" fill="none"/>
+        <line x1="4.5" y1="1" x2="4.5" y2="3.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="10.5" y1="1" x2="10.5" y2="3.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="1" y1="5.5" x2="14" y2="5.5" stroke="rgba(255,255,255,0.75)" stroke-width="1.1"/>
+      </svg>
+      <span class="hdr-label">Date:</span>
+      <strong>Feb 4, 2026</strong>
+    </div>
+
+    <div class="hdr-sep"></div>
+
+    <div class="hdr-region">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+        <circle cx="7.5" cy="7.5" r="6" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" fill="none"/>
+        <path d="M1.5 7.5h12M7.5 1.5c-2 2-3 4-3 6s1 4 3 6M7.5 1.5c2 2 3 4 3 6s-1 4-3 6" stroke="rgba(255,255,255,0.75)" stroke-width="1.3" fill="none"/>
+      </svg>
+      <span class="hdr-label">Region:</span>
+      <strong>All Regions</strong>
+      <span class="hdr-caret">▾</span>
+    </div>
+
+    <div class="hdr-sep"></div>
+
+    <div class="hdr-btn">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+        <path d="M9.5 2a5.5 5.5 0 00-5.5 5.5c0 3.2-1.8 4.6-1.8 4.6h14.6s-1.8-1.4-1.8-4.6A5.5 5.5 0 009.5 2z" stroke="white" stroke-width="1.4" fill="none"/>
+        <path d="M11 14.5a1.8 1.8 0 01-3.1 0" stroke="white" stroke-width="1.4" fill="none"/>
+      </svg>
+      <span class="notif-badge">81</span>
+    </div>
+
+    <div class="hdr-btn">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+        <circle cx="9.5" cy="9.5" r="7.5" stroke="white" stroke-width="1.4" fill="none"/>
+        <line x1="9.5" y1="9.5" x2="9.5" y2="13" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="9.5" cy="6.5" r="1" fill="white"/>
+      </svg>
+    </div>
+
+    <div class="hdr-btn">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+        <circle cx="9.5" cy="9.5" r="3" stroke="white" stroke-width="1.4" fill="none"/>
+        <path d="M9.5 1.5v2M9.5 15.5v2M1.5 9.5h2M15.5 9.5h2M4 4l1.4 1.4M13.6 13.6l1.4 1.4M4 15l1.4-1.4M13.6 5.4l1.4-1.4" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="dark-pill">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <path d="M11.5 7.4A5 5 0 015.6 1.5a5 5 0 100 10 5 5 0 005.9-4.1z" fill="rgba(255,255,255,0.85)"/>
+      </svg>
+      Dark
+    </div>
+
+    <div class="hdr-btn" style="gap:2px">
+      <svg width="19" height="19" viewBox="0 0 19 19" fill="none">
+        <circle cx="9.5" cy="7" r="3.5" stroke="white" stroke-width="1.4" fill="none"/>
+        <path d="M3 17.5c0-3.3 2.9-6 6.5-6s6.5 2.7 6.5 6" stroke="white" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      </svg>
+      <span class="hdr-caret">▾</span>
+    </div>
+  </header>
+
+  <!-- Content -->
+  <main class="content">
+    <h1 class="page-title">Mayo Clinic Patient Safety Platform</h1>
+    <p class="page-subtitle">AI-powered Overview of Patient Safety Events and Metrics</p>
+
+    <div class="table-card">
+      <div class="card-header">
+        <span class="card-title">M29 Event Assessment</span>
+        <div class="card-controls">
+          <div class="ctrl-date">
+            02/04/2026
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <rect x="1" y="1.5" width="11" height="10" rx="1.5" stroke="#4a5568" stroke-width="1.3" fill="none"/>
+              <line x1="4" y1="0.5" x2="4" y2="3" stroke="#4a5568" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="9" y1="0.5" x2="9" y2="3" stroke="#4a5568" stroke-width="1.3" stroke-linecap="round"/>
+              <line x1="1" y1="5" x2="12" y2="5" stroke="#4a5568" stroke-width="1.1"/>
+            </svg>
+          </div>
+          <div class="ctrl-region">
+            Region: <strong style="margin-left:4px">All Regions</strong>
+            <span style="font-size:10px;margin-left:2px;opacity:.6">▾</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <input class="search-input" type="text" id="searchInput"
+          placeholder="🔍  Search M29 events... (ID, MRN, type, description)"
+          oninput="filterTable()">
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:28px"></th>
+            <th>Event ID <span class="sort-icon">⇅</span></th>
+            <th>MRN <span class="sort-icon">⇅</span></th>
+            <th>Event Type <span class="sort-icon">⇅</span></th>
+            <th>Description</th>
+            <th>Harm Level <span class="sort-icon">⇅</span></th>
+            <th>M29 Likelihood <span class="sort-icon">↓</span></th>
+            <th>Sentinel Likelihood <span class="sort-icon">⇅</span></th>
+            <th>Region <span class="sort-icon">⇅</span></th>
+            <th>Reported <span class="sort-icon">⇅</span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+
+      <div class="table-footer">Showing 232 events</div>
+    </div>
+  </main>
+</div>
+
+<script>
+const events = [
+  {
+    id: '190063',
+    type: 'Surgical/Invasive Procedure',
+    typeShort: 'Surgical/Invasive...',
+    descShort: 'PART OF THE BARD POLYURETHANS URETERAL...',
+    likelihood: 'high', confidence: 95,
+    category: 'Retention of foreign object',
+    categoryShort: 'Retention of foreign...',
+    region: 'ARZ', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'PART OF THE BARD POLYURETHANS URETERAL CATHETER CAM OFF INSIDE THE PATIENT. IT WAS SEEN ON XRAY AND TAKEN OUT BY THE SURGEON.',
+    likelihoodReasoning: "A ureteral catheter fragment broke off inside the patient and required surgical removal—a clear 'retention of foreign object' scenario. Meets the automatic high score rule for retained objects in surgical/invasive procedure events.",
+    categoryReasoning: "The catheter fragment was not intentionally implanted and required operative removal. Directly matches the 'Retention of a foreign object' definition under M29 criteria.",
+    potentialCategories: ['Retention of foreign object', 'Device malfunction or misuse'],
+    sentinelLikelihood: 'high', sentinelConfidence: 91,
+    sentinelCategory: 'Retention of foreign object',
+    sentinelReasoning: 'Foreign body retention following an invasive procedure is a universal sentinel event. The catheter fragment required surgical removal, confirming this event meets mandatory sentinel reporting criteria per Joint Commission standards.',
+    harmLevel: 'high',
+    harmReasoning: 'Surgical intervention to remove a retained foreign body represents serious harm. The patient underwent an unplanned operative procedure with associated anesthesia risk and extended recovery time.'
+  },
+  {
+    id: '190010',
+    type: 'Management of Care', typeShort: 'Management of Care',
+    descShort: 'Patient was admitted via the ED to the Methodist...',
+    likelihood: 'high', confidence: 88,
+    category: 'Failure to follow up', categoryShort: 'Failure to follow up',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'Patient was admitted via the ED to the Methodist Hospital. Patient had multiple lab results flagged as critical that were not communicated to the care team in a timely manner, resulting in delayed treatment and patient decompensation.',
+    likelihoodReasoning: "Failure to communicate critical lab values to the care team resulted in delayed treatment and patient decompensation. Aligns with M29 criteria for failure to follow up on critical results with resultant patient harm.",
+    categoryReasoning: "Critical lab results were not communicated to treating physicians in a timely manner. A classic 'failure to follow up' on critical diagnostic findings under the M29 framework.",
+    potentialCategories: ['Failure to follow up', 'Communication breakdown'],
+    sentinelLikelihood: 'high', sentinelConfidence: 84,
+    sentinelCategory: 'Failure to follow up',
+    sentinelReasoning: 'Failure to communicate critical lab values resulting in patient decompensation meets sentinel event criteria under Joint Commission standards for preventable adverse events attributable to a systemic communication failure.',
+    harmLevel: 'high',
+    harmReasoning: 'Patient decompensation from delayed treatment of critical lab results constitutes serious harm. Emergency intervention was required that likely could have been prevented with timely communication of critical values.'
+  },
+  {
+    id: '190006',
+    type: 'Management of Care', typeShort: 'Management of Care',
+    descShort: 'Patient has been admitted for 6 days before ostomy...',
+    likelihood: 'medium', confidence: 62,
+    category: 'Device malfunction or misuse', categoryShort: 'Device malfunction or...',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'Patient has been admitted for 6 days before ostomy procedure. Post-operatively, the ostomy device malfunctioned causing significant leakage and skin breakdown requiring additional wound care intervention and extended stay.',
+    likelihoodReasoning: "Post-operative ostomy device malfunction causing skin breakdown and extended stay meets M29 criteria for device malfunction with patient harm beyond the planned procedure.",
+    categoryReasoning: "Ostomy appliance failure caused skin breakdown requiring additional wound care. Directly matches the 'Device malfunction or misuse' M29 category definition.",
+    potentialCategories: ['Device malfunction or misuse', 'Post-operative complication'],
+    sentinelLikelihood: 'medium', sentinelConfidence: 52,
+    sentinelCategory: 'Device malfunction or misuse',
+    sentinelReasoning: 'Post-operative device malfunction with resultant skin breakdown warrants sentinel consideration. Severity is moderate—additional intervention was required but outcomes were not life-threatening, placing this below the high sentinel threshold.',
+    harmLevel: 'medium',
+    harmReasoning: 'Skin breakdown requiring additional wound care and extended stay represents moderate harm. Clinical impact was significant but the patient did not sustain life-threatening injury.'
+  },
+  {
+    id: '190116',
+    type: 'Surgical/Invasive Procedure', typeShort: 'Surgical/Invasive...',
+    descShort: 'At the end of the procedure, reporting RN and...',
+    likelihood: 'medium', confidence: 58,
+    category: 'Device malfunction or misuse', categoryShort: 'Device malfunction or...',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'At the end of the procedure, reporting RN and surgeon discovered that the electrosurgical unit had malfunctioned during the operation. Patient sustained a burn injury at the grounding pad site requiring wound care and dermatology consultation.',
+    likelihoodReasoning: "ESU malfunction during surgery caused unexpected patient harm directly attributable to device failure. Meets M29 criteria for device malfunction with resultant injury during an invasive procedure.",
+    categoryReasoning: "The ESU failed during its intended use, causing a burn injury requiring wound care and specialist follow-up. Falls clearly under the 'Device malfunction or misuse' M29 category.",
+    potentialCategories: ['Device malfunction or misuse', 'Surgical complication'],
+    sentinelLikelihood: 'medium', sentinelConfidence: 59,
+    sentinelCategory: 'Device malfunction or misuse',
+    sentinelReasoning: 'Intraoperative ESU malfunction causing patient burns warrants sentinel review. Grounding pad burns are a known device failure mode; the resultant injury and specialist consultation indicate clinically significant but non-life-threatening harm.',
+    harmLevel: 'medium',
+    harmReasoning: 'Burn injury at grounding pad site requiring wound care and dermatology consultation indicates moderate harm. The injury requires additional treatment but is not immediately life-threatening.'
+  },
+  {
+    id: '190092',
+    type: 'Safety/Security', typeShort: 'Safety/Security',
+    descShort: 'This RN reached out to the patient for a post...',
+    likelihood: 'medium', confidence: 51,
+    category: 'Sexual assault', categoryShort: 'Sexual assault',
+    region: 'ARZ', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'This RN reached out to the patient for a post-discharge follow-up call. During the call, the patient disclosed that they had experienced unwanted sexual contact from a staff member during their inpatient stay. Patient was referred to patient advocacy services.',
+    likelihoodReasoning: "Patient disclosure of staff sexual assault during inpatient care is an automatic high-score M29 event. Sexual assault in a healthcare setting is a Never Event requiring mandatory reporting regardless of mitigating factors.",
+    categoryReasoning: "Patient disclosed unwanted sexual contact by a staff member during inpatient care. An unambiguous 'Sexual assault' Never Event requiring immediate escalation under M29 guidelines.",
+    potentialCategories: ['Sexual assault', 'Staff misconduct'],
+    sentinelLikelihood: 'medium', sentinelConfidence: 47,
+    sentinelCategory: 'Sexual assault',
+    sentinelReasoning: 'Alleged patient sexual assault by staff during inpatient care meets sentinel event thresholds per Joint Commission standards. All allegations require sentinel reporting pending investigation outcome.',
+    harmLevel: 'medium',
+    harmReasoning: 'Patient disclosure of sexual assault represents significant psychological and potential physical harm. Referral to advocacy services indicates clinically meaningful impact requiring ongoing support.'
+  },
+  {
+    id: '190181',
+    type: 'Safety/Security', typeShort: 'Safety/Security',
+    descShort: 'While steadying patient at risk for falling, patient...',
+    likelihood: 'low', confidence: 22,
+    category: '', categoryShort: '',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'While steadying patient at risk for falling, patient alleged that the staff member touched them inappropriately in a sexual manner. Patient made a formal complaint to the charge nurse immediately following the incident and the staff member was removed from duty pending investigation.',
+    likelihoodReasoning: "Allegation of inappropriate touching during care is a potential sexual assault event. Per M29 guidelines, all such allegations must be treated as potential Never Events until fully investigated.",
+    categoryReasoning: "Patient alleged inappropriate sexual contact during a fall prevention intervention. Per M29 guidelines, all sexual assault allegations must be reported as potential Never Events and investigated.",
+    potentialCategories: ['Sexual assault', 'Patient rights violation'],
+    sentinelLikelihood: 'low', sentinelConfidence: 18,
+    sentinelCategory: '',
+    sentinelReasoning: 'Allegation arose during a fall prevention intervention, suggesting possible misinterpretation. Lower sentinel likelihood pending investigation; complaint is being handled through appropriate channels with staff removed from duty.',
+    harmLevel: 'low',
+    harmReasoning: 'No physical harm documented. Staff member was removed pending investigation and the patient is receiving appropriate support through the formal complaint process.'
+  },
+  {
+    id: '190069',
+    type: 'Lab', typeShort: 'Lab',
+    descShort: 'Specimen was received in Histology Gross Cutting...',
+    likelihood: 'low', confidence: 18,
+    category: '', categoryShort: '',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'Specimen was received in Histology Gross Cutting from a patient who underwent a left breast lumpectomy. After gross examination and sectioning, the specimen could not be located for further processing. Patient must undergo repeat lumpectomy procedure.',
+    likelihoodReasoning: "Surgical specimen loss requiring a repeat lumpectomy represents significant physical and emotional patient harm. Meets M29 criteria for specimen loss with resultant need for additional invasive procedure.",
+    categoryReasoning: "Lumpectomy specimen lost in pathology, necessitating a repeat procedure. Directly matches the M29 'Specimen loss' category for specimens lost in a way requiring additional patient intervention.",
+    potentialCategories: ['Specimen loss', 'Laboratory error'],
+    sentinelLikelihood: 'low', sentinelConfidence: 13,
+    sentinelCategory: '',
+    sentinelReasoning: 'Specimen loss requiring repeat lumpectomy is clinically significant but has lower sentinel classification in this model. Laboratory process improvement may be a more impactful intervention than formal sentinel review for this event type.',
+    harmLevel: 'low',
+    harmReasoning: 'No direct physical harm has yet occurred from the specimen loss. A repeat procedure is planned, carrying some risk, but current harm level is low pending the additional intervention.'
+  },
+  {
+    id: '190119',
+    type: 'Management of Care', typeShort: 'Management of Care',
+    descShort: 'My pt started decompensating amid waiting for...',
+    likelihood: 'low', confidence: 14,
+    category: '', categoryShort: '',
+    region: 'RST', reported: '02/04/2026',
+    source: 'Vigilanz',
+    fullDesc: 'My pt started decompensating amid waiting for transfer approval. The transfer had been requested 4 hours prior but approvals were not obtained in time. Patient required emergency intervention that may have been avoided with timely care coordination and follow-through on the pending transfer request.',
+    likelihoodReasoning: "Patient decompensated during a 4-hour delay in transfer approvals, representing a serious care coordination failure. Meets M29 criteria for failure to follow up on a time-sensitive care action.",
+    categoryReasoning: "Delays in following up on transfer approvals led to patient decompensation and emergency intervention. Aligns with the 'Failure to follow up' category for time-sensitive care coordination failures.",
+    potentialCategories: ['Failure to follow up', 'Care coordination failure'],
+    sentinelLikelihood: 'low', sentinelConfidence: 11,
+    sentinelCategory: '',
+    sentinelReasoning: 'Transfer delay with patient decompensation warrants administrative review but has lower sentinel likelihood. Emergency intervention addressed the acute deterioration; the transfer delay may not be the sole causative factor in the outcome.',
+    harmLevel: 'low',
+    harmReasoning: 'Patient was stabilized with emergency intervention. Harm level is low as the situation was addressed once recognized, though the care coordination failure warrants thorough investigation.'
+  }
+];
+
+const expanded = new Set();
+
+function harmBadge(level) {
+  const label = level === 'medium' ? 'Med' : level.charAt(0).toUpperCase() + level.slice(1);
+  return `<span class="harm-badge ${level}">${label}</span>`;
+}
+
+const THUMB_UP = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>`;
+const THUMB_DOWN = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"/><path d="M17 2h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"/></svg>`;
+
+function feedbackWidget(agentType, eventId) {
+  const wid = `fb-${agentType}-${eventId}`;
+  return `
+    <div class="feedback-widget" id="${wid}">
+      <div class="feedback-question">Feedback on prediction</div>
+      <div class="feedback-btns">
+        <button class="fb-btn yes" onclick="fbYes('${wid}','${agentType}','${eventId}')" title="Correct">${THUMB_UP}</button>
+        <button class="fb-btn no"  onclick="fbNo('${wid}','${agentType}','${eventId}')" title="Incorrect">${THUMB_DOWN}</button>
+      </div>
+    </div>`;
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  data.forEach(ev => {
+    const isOpen = expanded.has(ev.id);
+
+    // Main row
+    const tr = document.createElement('tr');
+    if (isOpen) tr.classList.add('is-expanded');
+    tr.innerHTML = `
+      <td><span class="expand-btn" onclick="toggle('${ev.id}')">${isOpen ? '▾' : '▸'}</span></td>
+      <td><a class="event-link" onclick="toggle('${ev.id}')">${ev.id}</a></td>
+      <td><span class="mrn-blk"></span></td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isOpen ? ev.type : ev.typeShort}</td>
+      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.descShort}</td>
+      <td>${harmBadge(ev.harmLevel)}</td>
+      <td style="text-align:center"><span class="dot ${ev.likelihood}"></span></td>
+      <td style="text-align:center"><span class="dot ${ev.sentinelLikelihood}"></span></td>
+      <td>${ev.region}</td>
+      <td>${ev.reported}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // Detail row
+    if (isOpen) {
+      const dr = document.createElement('tr');
+      dr.innerHTML = `
+        <td class="detail-cell" colspan="10">
+          <div class="detail-panel">
+
+            <!-- Top: full-width event description -->
+            <div class="det-top">
+              <div class="det-title">Event Description</div>
+              <div class="det-source">Source: ${ev.source}</div>
+              <div class="desc-box">${ev.fullDesc}</div>
+            </div>
+
+            <!-- Bottom: 3-column agent panels -->
+            <div class="det-agents">
+
+              <!-- Harm Agent -->
+              <div class="det-agent-col">
+                <div class="ai-head">
+                  <div class="ai-badge">✦</div>
+                  <div class="det-title">Harm Level Analysis</div>
+                </div>
+                <div class="ai-sub">Harm Level agent</div>
+
+                <div class="ai-field">
+                  <div class="ai-label">Harm Level</div>
+                  ${harmBadge(ev.harmLevel)}
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Reasoning</div>
+                  <div class="ai-val">${ev.harmReasoning}</div>
+                </div>
+                ${feedbackWidget('harm', ev.id)}
+              </div>
+
+              <!-- M29 Agent -->
+              <div class="det-agent-col">
+                <div class="ai-head">
+                  <div class="ai-badge">✦</div>
+                  <div class="det-title">M29 Analysis &amp; Reasoning</div>
+                </div>
+                <div class="ai-sub">M29 Patient Safety Triage agent</div>
+
+                <div class="ai-field">
+                  <div class="ai-label">M29 Likelihood</div>
+                  <div class="ai-like">
+                    <span class="dot ${ev.likelihood}"></span>
+                    <span class="ai-val">(${ev.confidence}% confidence)</span>
+                  </div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">M29 Category</div>
+                  <div class="ai-cat">${ev.category || '—'}</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Reasoning</div>
+                  <div class="ai-val">${ev.likelihoodReasoning}</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Category Reasoning</div>
+                  <div class="ai-val">${ev.categoryReasoning}</div>
+                </div>
+                ${feedbackWidget('m29', ev.id)}
+              </div>
+
+              <!-- Sentinel Agent -->
+              <div class="det-agent-col">
+                <div class="ai-head">
+                  <div class="ai-badge">✦</div>
+                  <div class="det-title">Sentinel Analysis &amp; Reasoning</div>
+                </div>
+                <div class="ai-sub">Sentinel Likelihood agent</div>
+
+                <div class="ai-field">
+                  <div class="ai-label">Sentinel Likelihood</div>
+                  <div class="ai-like">
+                    <span class="dot ${ev.sentinelLikelihood}"></span>
+                    <span class="ai-val">(${ev.sentinelConfidence}% confidence)</span>
+                  </div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Category</div>
+                  <div class="ai-cat">${ev.sentinelCategory || '—'}</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Reasoning</div>
+                  <div class="ai-val">${ev.sentinelReasoning}</div>
+                </div>
+                ${feedbackWidget('sentinel', ev.id)}
+              </div>
+
+            </div><!-- /.det-agents -->
+          </div>
+        </td>
+      `;
+      tbody.appendChild(dr);
+    }
+  });
+}
+
+function toggle(id) {
+  expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderTable(filterEvents(q));
+}
+
+function filterEvents(q) {
+  if (!q) return events;
+  return events.filter(e =>
+    e.id.includes(q) ||
+    e.type.toLowerCase().includes(q) ||
+    e.descShort.toLowerCase().includes(q) ||
+    e.category.toLowerCase().includes(q) ||
+    e.region.toLowerCase().includes(q)
+  );
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderTable(filterEvents(q));
+}
+
+function fbYes(wid, agentType, eventId) {
+  console.log('Feedback:', { eventId, agentType, correct: true });
+  document.getElementById(wid).innerHTML = '<div class="fb-confirm">✓ Feedback recorded</div>';
+}
+
+function fbNo(wid, agentType, eventId) {
+  const options = agentType === 'harm'
+    ? ['Serious', 'Medium', 'Low']
+    : ['High', 'Medium', 'Low'];
+  const optHtml = options.map(o => `<option value="${o.toLowerCase()}">${o}</option>`).join('');
+  document.getElementById(wid).innerHTML = `
+    <div class="feedback-question">Feedback on prediction</div>
+    <div class="feedback-btns" style="margin-bottom:10px">
+      <button class="fb-btn yes" onclick="fbYes('${wid}','${agentType}','${eventId}')" title="Correct">${THUMB_UP}</button>
+      <button class="fb-btn no" style="opacity:0.5;cursor:default" title="Incorrect">${THUMB_DOWN}</button>
+    </div>
+    <div class="fb-correction">
+      <select class="fb-select" id="${wid}-sel">
+        <option value="">Select correct value…</option>
+        ${optHtml}
+      </select>
+      <textarea class="fb-note" id="${wid}-note" placeholder="Optional note…"></textarea>
+      <button class="fb-submit" onclick="fbSubmit('${wid}','${agentType}','${eventId}')">Submit</button>
+    </div>`;
+}
+
+function fbSubmit(wid, agentType, eventId) {
+  const correctedValue = document.getElementById(`${wid}-sel`).value;
+  const note = document.getElementById(`${wid}-note`).value;
+  console.log('Feedback submitted:', { eventId, agentType, correctedValue, note });
+  document.getElementById(wid).innerHTML = '<div class="fb-confirm">✓ Feedback recorded</div>';
+}
+
+renderTable(events);
+</script>
+</body>
+</html>
