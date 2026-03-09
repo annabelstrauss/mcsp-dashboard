@@ -237,6 +237,10 @@ thead th:nth-child(10) { width: 90px; }
 
 .det-top { padding: 18px 22px; border-bottom: 1px solid #dde4ee; }
 
+.desc-box {
+  font-size: 13.5px; line-height: 1.8; color: #2d3748;
+}
+
 .det-agents {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -285,6 +289,22 @@ thead th:nth-child(10) { width: 90px; }
 .harm-badge.high   { background: #fee2e2; color: #dc2626; }
 .harm-badge.medium { background: #fef3c7; color: #d97706; }
 .harm-badge.low    { background: #d1fae5; color: #059669; }
+
+/* ── Harm column toggle ── */
+.hide-harm .harm-col { display: none; }
+.hide-harm .harm-agent-col { display: none; }
+.harm-toggle-fab {
+  position: fixed; bottom: 18px; right: 18px; z-index: 100;
+  display: flex; align-items: center; gap: 6px;
+  background: white; border: 1px solid #dde4ee;
+  border-radius: 8px; padding: 6px 10px;
+  cursor: pointer; font-size: 11.5px; color: #5e6e82;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: box-shadow 0.15s, color 0.15s;
+  user-select: none;
+}
+.harm-toggle-fab:hover { box-shadow: 0 3px 12px rgba(0,0,0,0.15); color: #2d3748; }
+.harm-toggle-fab.hidden-state { color: #a0aec0; }
 
 /* ── Per-agent feedback widget ── */
 .feedback-widget {
@@ -494,7 +514,7 @@ thead th:nth-child(10) { width: 90px; }
             <th>MRN <span class="sort-icon">⇅</span></th>
             <th>Event Type <span class="sort-icon">⇅</span></th>
             <th>Description</th>
-            <th>Harm Level <span class="sort-icon">⇅</span></th>
+            <th class="harm-col">Harm Level <span class="sort-icon">⇅</span></th>
             <th>M29 Likelihood <span class="sort-icon">↓</span></th>
             <th>Sentinel Likelihood <span class="sort-icon">⇅</span></th>
             <th>Region <span class="sort-icon">⇅</span></th>
@@ -507,6 +527,12 @@ thead th:nth-child(10) { width: 90px; }
       <div class="table-footer">Showing 232 events</div>
     </div>
   </main>
+</div>
+
+<!-- Harm column toggle FAB -->
+<div class="harm-toggle-fab" id="harmToggleBtn" onclick="toggleHarmCol()" title="Show/hide Harm Level column">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  Harm Level
 </div>
 
 <script>
@@ -525,7 +551,7 @@ const events = [
     likelihoodReasoning: "A ureteral catheter fragment broke off inside the patient and required surgical removal—a clear 'retention of foreign object' scenario. Meets the automatic high score rule for retained objects in surgical/invasive procedure events.",
     categoryReasoning: "The catheter fragment was not intentionally implanted and required operative removal. Directly matches the 'Retention of a foreign object' definition under M29 criteria.",
     potentialCategories: ['Retention of foreign object', 'Device malfunction or misuse'],
-    sentinelLikelihood: 'high', sentinelConfidence: 91,
+    sentinelLikelihood: 'low', sentinelConfidence: 91,
     sentinelCategory: 'Retention of foreign object',
     sentinelReasoning: 'Foreign body retention following an invasive procedure is a universal sentinel event. The catheter fragment required surgical removal, confirming this event meets mandatory sentinel reporting criteria per Joint Commission standards.',
     harmLevel: 'high',
@@ -543,7 +569,7 @@ const events = [
     likelihoodReasoning: "Failure to communicate critical lab values to the care team resulted in delayed treatment and patient decompensation. Aligns with M29 criteria for failure to follow up on critical results with resultant patient harm.",
     categoryReasoning: "Critical lab results were not communicated to treating physicians in a timely manner. A classic 'failure to follow up' on critical diagnostic findings under the M29 framework.",
     potentialCategories: ['Failure to follow up', 'Communication breakdown'],
-    sentinelLikelihood: 'high', sentinelConfidence: 84,
+    sentinelLikelihood: 'medium', sentinelConfidence: 84,
     sentinelCategory: 'Failure to follow up',
     sentinelReasoning: 'Failure to communicate critical lab values resulting in patient decompensation meets sentinel event criteria under Joint Commission standards for preventable adverse events attributable to a systemic communication failure.',
     harmLevel: 'high',
@@ -561,7 +587,7 @@ const events = [
     likelihoodReasoning: "Post-operative ostomy device malfunction causing skin breakdown and extended stay meets M29 criteria for device malfunction with patient harm beyond the planned procedure.",
     categoryReasoning: "Ostomy appliance failure caused skin breakdown requiring additional wound care. Directly matches the 'Device malfunction or misuse' M29 category definition.",
     potentialCategories: ['Device malfunction or misuse', 'Post-operative complication'],
-    sentinelLikelihood: 'medium', sentinelConfidence: 52,
+    sentinelLikelihood: 'high', sentinelConfidence: 52,
     sentinelCategory: 'Device malfunction or misuse',
     sentinelReasoning: 'Post-operative device malfunction with resultant skin breakdown warrants sentinel consideration. Severity is moderate—additional intervention was required but outcomes were not life-threatening, placing this below the high sentinel threshold.',
     harmLevel: 'medium',
@@ -697,7 +723,7 @@ function renderTable(data) {
       <td><span class="mrn-blk"></span></td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isOpen ? ev.type : ev.typeShort}</td>
       <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.descShort}</td>
-      <td>${harmBadge(ev.harmLevel)}</td>
+      <td class="harm-col">${harmBadge(ev.harmLevel)}</td>
       <td style="text-align:center"><span class="dot ${ev.likelihood}"></span></td>
       <td style="text-align:center"><span class="dot ${ev.sentinelLikelihood}"></span></td>
       <td>${ev.region}</td>
@@ -716,14 +742,14 @@ function renderTable(data) {
             <div class="det-top">
               <div class="det-title">Event Description</div>
               <div class="det-source">Source: ${ev.source}</div>
-              <div class="desc-box">${ev.fullDesc}</div>
+              <div class="desc-box" data-harm="${ev.harmLevel}">${ev.fullDesc}</div>
             </div>
 
             <!-- Bottom: 3-column agent panels -->
             <div class="det-agents">
 
               <!-- Harm Agent -->
-              <div class="det-agent-col">
+              <div class="det-agent-col harm-agent-col">
                 <div class="ai-head">
                   <div class="ai-badge">✦</div>
                   <div class="det-title">Harm Level Analysis</div>
@@ -859,6 +885,18 @@ function fbSubmit(wid, agentType, eventId) {
   const note = document.getElementById(`${wid}-note`).value;
   console.log('Feedback submitted:', { eventId, agentType, correctedValue, note });
   document.getElementById(wid).innerHTML = '<div class="fb-confirm">✓ Feedback recorded</div>';
+}
+
+let harmColVisible = true;
+function toggleHarmCol() {
+  harmColVisible = !harmColVisible;
+  const table = document.querySelector('table');
+  table.classList.toggle('hide-harm', !harmColVisible);
+  const btn = document.getElementById('harmToggleBtn');
+  btn.classList.toggle('hidden-state', !harmColVisible);
+  btn.innerHTML = harmColVisible
+    ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Harm Level`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Harm Level`;
 }
 
 renderTable(events);
