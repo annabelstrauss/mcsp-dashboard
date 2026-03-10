@@ -176,10 +176,14 @@ thead th {
   border-bottom: 2px solid #dde4ee;
   white-space: nowrap; user-select: none;
 }
+thead th[data-sort] { cursor: pointer; }
+thead th[data-sort]:hover { color: #1a2332; }
 .sort-icon { opacity: 0.45; font-size: 9px; margin-left: 3px; }
+.sort-icon.active { opacity: 1; color: #3550b5; }
 
 tbody tr { border-bottom: 1px solid #edf1f7; }
-tbody tr:hover { background: #f7f9fd; }
+tbody tr.data-row { cursor: pointer; }
+tbody tr.data-row:hover { background: #f7f9fd; }
 tbody tr.is-expanded { background: #f2f6fb; }
 
 tbody td {
@@ -199,8 +203,9 @@ thead th:nth-child(9) { width: 65px; }
 thead th:nth-child(10) { width: 90px; }
 
 .expand-btn {
-  cursor: pointer; color: #5a6b80; font-size: 11px;
+  cursor: pointer; color: #5a6b80; font-size: 16px;
   width: 18px; display: inline-block; text-align: center;
+  line-height: 1;
 }
 
 .event-link {
@@ -208,10 +213,14 @@ thead th:nth-child(10) { width: 90px; }
 }
 .event-link:hover { text-decoration: underline; }
 
-.mrn-blk {
-  background: #111; color: #111; border-radius: 3px;
-  display: inline-block; width: 70px; height: 14px;
-  vertical-align: middle;
+.desc-tooltip {
+  position: fixed; z-index: 9999;
+  background: #1a2332; color: #e8edf4;
+  padding: 10px 14px; border-radius: 7px;
+  font-size: 12.5px; line-height: 1.7;
+  max-width: 380px; pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  display: none; white-space: normal;
 }
 
 .dot {
@@ -293,6 +302,7 @@ thead th:nth-child(10) { width: 90px; }
 /* ── Harm column toggle ── */
 .hide-harm .harm-col { display: none; }
 .hide-harm .harm-agent-col { display: none; }
+.hide-harm .det-agents { grid-template-columns: 1fr 1fr; }
 .harm-toggle-fab {
   position: fixed; bottom: 18px; right: 18px; z-index: 100;
   display: flex; align-items: center; gap: 6px;
@@ -510,15 +520,15 @@ thead th:nth-child(10) { width: 90px; }
         <thead>
           <tr>
             <th style="width:28px"></th>
-            <th>Event ID <span class="sort-icon">⇅</span></th>
-            <th>MRN <span class="sort-icon">⇅</span></th>
-            <th>Event Type <span class="sort-icon">⇅</span></th>
+            <th data-sort="id" onclick="sortBy('id')">Event ID <span class="sort-icon" id="si-id">⇅</span></th>
+            <th data-sort="mrn" onclick="sortBy('mrn')">MRN <span class="sort-icon" id="si-mrn">⇅</span></th>
+            <th data-sort="type" onclick="sortBy('type')">Event Type <span class="sort-icon" id="si-type">⇅</span></th>
             <th>Description</th>
-            <th class="harm-col">Harm Level <span class="sort-icon">⇅</span></th>
-            <th>M29 Likelihood <span class="sort-icon">↓</span></th>
-            <th>Sentinel Likelihood <span class="sort-icon">⇅</span></th>
-            <th>Region <span class="sort-icon">⇅</span></th>
-            <th>Reported <span class="sort-icon">⇅</span></th>
+            <th class="harm-col" data-sort="harmLevel" onclick="sortBy('harmLevel')">Harm Level <span class="sort-icon active" id="si-harmLevel">↓</span></th>
+            <th data-sort="confidence" onclick="sortBy('confidence')">M29 Likelihood <span class="sort-icon" id="si-confidence">⇅</span></th>
+            <th data-sort="sentinelConfidence" onclick="sortBy('sentinelConfidence')">Sentinel Likelihood <span class="sort-icon" id="si-sentinelConfidence">⇅</span></th>
+            <th data-sort="region" onclick="sortBy('region')">Region <span class="sort-icon" id="si-region">⇅</span></th>
+            <th data-sort="reported" onclick="sortBy('reported')">Reported <span class="sort-icon" id="si-reported">⇅</span></th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -528,6 +538,9 @@ thead th:nth-child(10) { width: 90px; }
     </div>
   </main>
 </div>
+
+<!-- Description tooltip -->
+<div class="desc-tooltip" id="descTooltip"></div>
 
 <!-- Harm column toggle FAB -->
 <div class="harm-toggle-fab" id="harmToggleBtn" onclick="toggleHarmCol()" title="Show/hide Harm Level column">
@@ -545,7 +558,7 @@ const events = [
     likelihood: 'high', confidence: 95,
     category: 'Retention of foreign object',
     categoryShort: 'Retention of foreign...',
-    region: 'ARZ', reported: '02/04/2026',
+    mrn: '48219', region: 'ARZ', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'PART OF THE BARD POLYURETHANS URETERAL CATHETER CAM OFF INSIDE THE PATIENT. IT WAS SEEN ON XRAY AND TAKEN OUT BY THE SURGEON.',
     likelihoodReasoning: "A ureteral catheter fragment broke off inside the patient and required surgical removal—a clear 'retention of foreign object' scenario. Meets the automatic high score rule for retained objects in surgical/invasive procedure events.",
@@ -563,7 +576,7 @@ const events = [
     descShort: 'Patient was admitted via the ED to the Methodist...',
     likelihood: 'high', confidence: 88,
     category: 'Failure to follow up', categoryShort: 'Failure to follow up',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '72934', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'Patient was admitted via the ED to the Methodist Hospital. Patient had multiple lab results flagged as critical that were not communicated to the care team in a timely manner, resulting in delayed treatment and patient decompensation.',
     likelihoodReasoning: "Failure to communicate critical lab values to the care team resulted in delayed treatment and patient decompensation. Aligns with M29 criteria for failure to follow up on critical results with resultant patient harm.",
@@ -581,7 +594,7 @@ const events = [
     descShort: 'Patient has been admitted for 6 days before ostomy...',
     likelihood: 'medium', confidence: 62,
     category: 'Device malfunction or misuse', categoryShort: 'Device malfunction or...',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '18473', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'Patient has been admitted for 6 days before ostomy procedure. Post-operatively, the ostomy device malfunctioned causing significant leakage and skin breakdown requiring additional wound care intervention and extended stay.',
     likelihoodReasoning: "Post-operative ostomy device malfunction causing skin breakdown and extended stay meets M29 criteria for device malfunction with patient harm beyond the planned procedure.",
@@ -599,7 +612,7 @@ const events = [
     descShort: 'At the end of the procedure, reporting RN and...',
     likelihood: 'medium', confidence: 58,
     category: 'Device malfunction or misuse', categoryShort: 'Device malfunction or...',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '56348', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'At the end of the procedure, reporting RN and surgeon discovered that the electrosurgical unit had malfunctioned during the operation. Patient sustained a burn injury at the grounding pad site requiring wound care and dermatology consultation.',
     likelihoodReasoning: "ESU malfunction during surgery caused unexpected patient harm directly attributable to device failure. Meets M29 criteria for device malfunction with resultant injury during an invasive procedure.",
@@ -617,7 +630,7 @@ const events = [
     descShort: 'This RN reached out to the patient for a post...',
     likelihood: 'medium', confidence: 51,
     category: 'Sexual assault', categoryShort: 'Sexual assault',
-    region: 'ARZ', reported: '02/04/2026',
+    mrn: '91027', region: 'ARZ', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'This RN reached out to the patient for a post-discharge follow-up call. During the call, the patient disclosed that they had experienced unwanted sexual contact from a staff member during their inpatient stay. Patient was referred to patient advocacy services.',
     likelihoodReasoning: "Patient disclosure of staff sexual assault during inpatient care is an automatic high-score M29 event. Sexual assault in a healthcare setting is a Never Event requiring mandatory reporting regardless of mitigating factors.",
@@ -635,7 +648,7 @@ const events = [
     descShort: 'While steadying patient at risk for falling, patient...',
     likelihood: 'low', confidence: 22,
     category: '', categoryShort: '',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '37584', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'While steadying patient at risk for falling, patient alleged that the staff member touched them inappropriately in a sexual manner. Patient made a formal complaint to the charge nurse immediately following the incident and the staff member was removed from duty pending investigation.',
     likelihoodReasoning: "Allegation of inappropriate touching during care is a potential sexual assault event. Per M29 guidelines, all such allegations must be treated as potential Never Events until fully investigated.",
@@ -653,7 +666,7 @@ const events = [
     descShort: 'Specimen was received in Histology Gross Cutting...',
     likelihood: 'low', confidence: 18,
     category: '', categoryShort: '',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '64193', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'Specimen was received in Histology Gross Cutting from a patient who underwent a left breast lumpectomy. After gross examination and sectioning, the specimen could not be located for further processing. Patient must undergo repeat lumpectomy procedure.',
     likelihoodReasoning: "Surgical specimen loss requiring a repeat lumpectomy represents significant physical and emotional patient harm. Meets M29 criteria for specimen loss with resultant need for additional invasive procedure.",
@@ -671,7 +684,7 @@ const events = [
     descShort: 'My pt started decompensating amid waiting for...',
     likelihood: 'low', confidence: 14,
     category: '', categoryShort: '',
-    region: 'RST', reported: '02/04/2026',
+    mrn: '20854', region: 'RST', reported: '02/04/2026',
     source: 'Vigilanz',
     fullDesc: 'My pt started decompensating amid waiting for transfer approval. The transfer had been requested 4 hours prior but approvals were not obtained in time. Patient required emergency intervention that may have been avoided with timely care coordination and follow-through on the pending transfer request.',
     likelihoodReasoning: "Patient decompensated during a 4-hour delay in transfer approvals, representing a serious care coordination failure. Meets M29 criteria for failure to follow up on a time-sensitive care action.",
@@ -711,18 +724,24 @@ function renderTable(data) {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
 
-  data.forEach(ev => {
+  sortData(data).forEach(ev => {
     const isOpen = expanded.has(ev.id);
 
     // Main row
     const tr = document.createElement('tr');
+    tr.classList.add('data-row');
     if (isOpen) tr.classList.add('is-expanded');
+    tr.onclick = () => toggle(ev.id);
+    const safeDesc = ev.fullDesc.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     tr.innerHTML = `
-      <td><span class="expand-btn" onclick="toggle('${ev.id}')">${isOpen ? '▾' : '▸'}</span></td>
-      <td><a class="event-link" onclick="toggle('${ev.id}')">${ev.id}</a></td>
-      <td><span class="mrn-blk"></span></td>
+      <td><span class="expand-btn">${isOpen ? '▾' : '▸'}</span></td>
+      <td><a class="event-link">${ev.id}</a></td>
+      <td>${ev.mrn}</td>
       <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${isOpen ? ev.type : ev.typeShort}</td>
-      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.descShort}</td>
+      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default"
+          onmouseenter="showTooltip(event,'${safeDesc}')"
+          onmouseleave="hideTooltip()"
+          onclick="event.stopPropagation()">${ev.descShort}</td>
       <td class="harm-col">${harmBadge(ev.harmLevel)}</td>
       <td style="text-align:center"><span class="dot ${ev.likelihood}"></span></td>
       <td style="text-align:center"><span class="dot ${ev.sentinelLikelihood}"></span></td>
@@ -885,6 +904,52 @@ function fbSubmit(wid, agentType, eventId) {
   const note = document.getElementById(`${wid}-note`).value;
   console.log('Feedback submitted:', { eventId, agentType, correctedValue, note });
   document.getElementById(wid).innerHTML = '<div class="fb-confirm">✓ Feedback recorded</div>';
+}
+
+// ── Sorting ──
+let sortKey = 'harmLevel';
+let sortDir = 1;
+const levelVal = { high: 3, medium: 2, low: 1, '': 0 };
+
+function sortData(data) {
+  return [...data].sort((a, b) => {
+    let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
+    if (['likelihood','sentinelLikelihood','harmLevel'].includes(sortKey)) {
+      av = levelVal[av] ?? 0; bv = levelVal[bv] ?? 0;
+    } else if (['confidence','sentinelConfidence'].includes(sortKey)) {
+      av = Number(av); bv = Number(bv);
+    } else {
+      av = String(av).toLowerCase(); bv = String(bv).toLowerCase();
+    }
+    return av < bv ? sortDir : av > bv ? -sortDir : 0;
+  });
+}
+
+function sortBy(key) {
+  sortDir = sortKey === key ? -sortDir : -1;
+  sortKey = key;
+  document.querySelectorAll('.sort-icon').forEach(el => {
+    el.classList.remove('active');
+    el.textContent = '⇅';
+  });
+  const icon = document.getElementById('si-' + key);
+  if (icon) { icon.classList.add('active'); icon.textContent = sortDir === 1 ? '↓' : '↑'; }
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderTable(filterEvents(q));
+}
+
+// ── Tooltip ──
+function showTooltip(e, text) {
+  const t = document.getElementById('descTooltip');
+  t.textContent = text;
+  t.style.display = 'block';
+  const x = Math.min(e.clientX + 14, window.innerWidth - 410);
+  const y = e.clientY + 18;
+  t.style.left = x + 'px';
+  t.style.top = y + 'px';
+}
+function hideTooltip() {
+  document.getElementById('descTooltip').style.display = 'none';
 }
 
 let harmColVisible = true;
