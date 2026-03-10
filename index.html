@@ -565,8 +565,9 @@ const events = [
     categoryReasoning: "The catheter fragment was not intentionally implanted and required operative removal. Directly matches the 'Retention of a foreign object' definition under M29 criteria.",
     potentialCategories: ['Retention of foreign object', 'Device malfunction or misuse'],
     sentinelLikelihood: 'low', sentinelConfidence: 91,
-    sentinelCategory: 'Retention of foreign object',
+    sentinelCategory: 'SRE 2 — Unintended retention of a medical or surgical item after an invasive procedure',
     sentinelReasoning: 'Foreign body retention following an invasive procedure is a universal sentinel event. The catheter fragment required surgical removal, confirming this event meets mandatory sentinel reporting criteria per Joint Commission standards.',
+    sentinelCategoryReasoning: 'SRE 2 applies directly — the catheter fragment was retained unintentionally inside the patient following an invasive urological procedure and required surgical retrieval. This matches the unintended retention criterion regardless of outcome.',
     harmLevel: 'high',
     harmReasoning: 'Surgical intervention to remove a retained foreign body represents serious harm. The patient underwent an unplanned operative procedure with associated anesthesia risk and extended recovery time.'
   },
@@ -583,8 +584,9 @@ const events = [
     categoryReasoning: "Critical lab results were not communicated to treating physicians in a timely manner. A classic 'failure to follow up' on critical diagnostic findings under the M29 framework.",
     potentialCategories: ['Failure to follow up', 'Communication breakdown'],
     sentinelLikelihood: 'medium', sentinelConfidence: 84,
-    sentinelCategory: 'Failure to follow up',
+    sentinelCategory: 'SRE 23 — Patient harm resulting from failure to act on clinically significant laboratory, pathology, or radiology test results',
     sentinelReasoning: 'Failure to communicate critical lab values resulting in patient decompensation meets sentinel event criteria under Joint Commission standards for preventable adverse events attributable to a systemic communication failure.',
+    sentinelCategoryReasoning: 'SRE 23 applies — critical laboratory values were flagged but not communicated to the care team, resulting in delayed treatment and patient decompensation. The failure to act on clinically significant lab results is the proximate cause of patient harm.',
     harmLevel: 'high',
     harmReasoning: 'Patient decompensation from delayed treatment of critical lab results constitutes serious harm. Emergency intervention was required that likely could have been prevented with timely communication of critical values.'
   },
@@ -601,8 +603,9 @@ const events = [
     categoryReasoning: "Ostomy appliance failure caused skin breakdown requiring additional wound care. Directly matches the 'Device malfunction or misuse' M29 category definition.",
     potentialCategories: ['Device malfunction or misuse', 'Post-operative complication'],
     sentinelLikelihood: 'high', sentinelConfidence: 52,
-    sentinelCategory: 'Device malfunction or misuse',
+    sentinelCategory: 'SRE 9 — Patient harm associated with use or function of a medical device other than as intended',
     sentinelReasoning: 'Post-operative device malfunction with resultant skin breakdown warrants sentinel consideration. Severity is moderate—additional intervention was required but outcomes were not life-threatening, placing this below the high sentinel threshold.',
+    sentinelCategoryReasoning: 'SRE 9 applies — the ostomy appliance malfunctioned during its intended post-operative use, functioning other than as designed and directly causing skin breakdown requiring additional wound care. Device failure as the proximate cause of patient harm satisfies this criterion.',
     harmLevel: 'medium',
     harmReasoning: 'Skin breakdown requiring additional wound care and extended stay represents moderate harm. Clinical impact was significant but the patient did not sustain life-threatening injury.'
   },
@@ -619,8 +622,9 @@ const events = [
     categoryReasoning: "The ESU failed during its intended use, causing a burn injury requiring wound care and specialist follow-up. Falls clearly under the 'Device malfunction or misuse' M29 category.",
     potentialCategories: ['Device malfunction or misuse', 'Surgical complication'],
     sentinelLikelihood: 'medium', sentinelConfidence: 59,
-    sentinelCategory: 'Device malfunction or misuse',
+    sentinelCategory: 'SRE 9 — Patient harm associated with use or function of a medical device other than as intended',
     sentinelReasoning: 'Intraoperative ESU malfunction causing patient burns warrants sentinel review. Grounding pad burns are a known device failure mode; the resultant injury and specialist consultation indicate clinically significant but non-life-threatening harm.',
+    sentinelCategoryReasoning: 'SRE 9 applies — the electrosurgical unit malfunctioned during its intended intraoperative use, causing a burn injury at the grounding pad site. The ESU functioned other than as intended during direct patient care, satisfying the product/device harm criterion.',
     harmLevel: 'medium',
     harmReasoning: 'Burn injury at grounding pad site requiring wound care and dermatology consultation indicates moderate harm. The injury requires additional treatment but is not immediately life-threatening.'
   },
@@ -637,8 +641,9 @@ const events = [
     categoryReasoning: "Patient disclosed unwanted sexual contact by a staff member during inpatient care. An unambiguous 'Sexual assault' Never Event requiring immediate escalation under M29 guidelines.",
     potentialCategories: ['Sexual assault', 'Staff misconduct'],
     sentinelLikelihood: 'medium', sentinelConfidence: 47,
-    sentinelCategory: 'Sexual assault',
+    sentinelCategory: 'SRE 16 — Sexual abuse or sexual assault within or on the grounds of a healthcare setting',
     sentinelReasoning: 'Alleged patient sexual assault by staff during inpatient care meets sentinel event thresholds per Joint Commission standards. All allegations require sentinel reporting pending investigation outcome.',
+    sentinelCategoryReasoning: 'SRE 16 applies — the patient disclosed unwanted sexual contact by a staff member during inpatient care, occurring within the grounds of the healthcare setting. This SRE applies regardless of outcome; all allegations require reporting and investigation.',
     harmLevel: 'medium',
     harmReasoning: 'Patient disclosure of sexual assault represents significant psychological and potential physical harm. Referral to advocacy services indicates clinically meaningful impact requiring ongoing support.'
   },
@@ -655,8 +660,9 @@ const events = [
     categoryReasoning: "Patient alleged inappropriate sexual contact during a fall prevention intervention. Per M29 guidelines, all sexual assault allegations must be reported as potential Never Events and investigated.",
     potentialCategories: ['Sexual assault', 'Patient rights violation'],
     sentinelLikelihood: 'low', sentinelConfidence: 18,
-    sentinelCategory: '',
+    sentinelCategory: 'SRE 16 — Sexual abuse or sexual assault within or on the grounds of a healthcare setting',
     sentinelReasoning: 'Allegation arose during a fall prevention intervention, suggesting possible misinterpretation. Lower sentinel likelihood pending investigation; complaint is being handled through appropriate channels with staff removed from duty.',
+    sentinelCategoryReasoning: 'SRE 16 is the applicable category if the allegation is substantiated — contact occurred within the healthcare setting during a care intervention. However, given the circumstances of the fall prevention activity, misinterpretation is possible and sentinel classification is pending investigation outcome.',
     harmLevel: 'low',
     harmReasoning: 'No physical harm documented. Staff member was removed pending investigation and the patient is receiving appropriate support through the formal complaint process.'
   },
@@ -673,8 +679,9 @@ const events = [
     categoryReasoning: "Lumpectomy specimen lost in pathology, necessitating a repeat procedure. Directly matches the M29 'Specimen loss' category for specimens lost in a way requiring additional patient intervention.",
     potentialCategories: ['Specimen loss', 'Laboratory error'],
     sentinelLikelihood: 'low', sentinelConfidence: 13,
-    sentinelCategory: '',
+    sentinelCategory: 'SRE 22 — Patient harm associated with irretrievable loss of a biological specimen replaceable only by invasive procedure',
     sentinelReasoning: 'Specimen loss requiring repeat lumpectomy is clinically significant but has lower sentinel classification in this model. Laboratory process improvement may be a more impactful intervention than formal sentinel review for this event type.',
+    sentinelCategoryReasoning: 'SRE 22 may apply — the lumpectomy specimen was irretrievably lost in pathology and is only recoverable via repeat invasive procedure. If patient harm from the repeat procedure is confirmed, this would directly satisfy the biological specimen loss criterion.',
     harmLevel: 'low',
     harmReasoning: 'No direct physical harm has yet occurred from the specimen loss. A repeat procedure is planned, carrying some risk, but current harm level is low pending the additional intervention.'
   },
@@ -691,8 +698,9 @@ const events = [
     categoryReasoning: "Delays in following up on transfer approvals led to patient decompensation and emergency intervention. Aligns with the 'Failure to follow up' category for time-sensitive care coordination failures.",
     potentialCategories: ['Failure to follow up', 'Care coordination failure'],
     sentinelLikelihood: 'low', sentinelConfidence: 11,
-    sentinelCategory: '',
+    sentinelCategory: 'SRE 28 — Patient harm associated with unrecognized clinical deterioration',
     sentinelReasoning: 'Transfer delay with patient decompensation warrants administrative review but has lower sentinel likelihood. Emergency intervention addressed the acute deterioration; the transfer delay may not be the sole causative factor in the outcome.',
+    sentinelCategoryReasoning: 'SRE 28 is the closest applicable category — the patient deteriorated during a 4-hour transfer approval delay without timely recognition and escalation. Whether this meets the full SRE threshold depends on whether the deterioration was preventable through earlier clinical response, pending further review.',
     harmLevel: 'low',
     harmReasoning: 'Patient was stabilized with emergency intervention. Harm level is low as the situation was addressed once recognized, though the care coordination failure warrants thorough investigation.'
   }
@@ -832,12 +840,16 @@ function renderTable(data) {
                   </div>
                 </div>
                 <div class="ai-field">
-                  <div class="ai-label">Category</div>
+                  <div class="ai-label">Sentinel Category</div>
                   <div class="ai-cat">${ev.sentinelCategory || '—'}</div>
                 </div>
                 <div class="ai-field">
                   <div class="ai-label">Reasoning</div>
                   <div class="ai-val">${ev.sentinelReasoning}</div>
+                </div>
+                <div class="ai-field">
+                  <div class="ai-label">Category Reasoning</div>
+                  <div class="ai-val">${ev.sentinelCategoryReasoning || '—'}</div>
                 </div>
                 ${feedbackWidget('sentinel', ev.id)}
               </div>
