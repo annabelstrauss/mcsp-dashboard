@@ -492,7 +492,7 @@ thead th:nth-child(10) { width: 90px; }
 
     <div class="table-card">
       <div class="card-header">
-        <span class="card-title">M29 Event Assessment</span>
+        <span class="card-title">M29 and Sentinel Event Assessment</span>
         <div class="card-controls">
           <div class="ctrl-date">
             02/04/2026
@@ -751,8 +751,8 @@ function renderTable(data) {
           onmouseleave="hideTooltip()"
           onclick="event.stopPropagation()">${ev.descShort}</td>
       <td class="harm-col">${harmBadge(ev.harmLevel)}</td>
-      <td style="text-align:center"><span class="dot ${ev.likelihood}"></span></td>
-      <td style="text-align:center"><span class="dot ${ev.sentinelLikelihood}"></span></td>
+      <td style="text-align:center">${harmBadge(ev.likelihood)}</td>
+      <td style="text-align:center">${harmBadge(ev.sentinelLikelihood)}</td>
       <td>${ev.region}</td>
       <td>${ev.reported}</td>
     `;
@@ -805,7 +805,7 @@ function renderTable(data) {
                 <div class="ai-field">
                   <div class="ai-label">M29 Likelihood</div>
                   <div class="ai-like">
-                    <span class="dot ${ev.likelihood}"></span>
+                    ${harmBadge(ev.likelihood)}
                     <span class="ai-val">(${ev.confidence}% confidence)</span>
                   </div>
                 </div>
@@ -835,7 +835,7 @@ function renderTable(data) {
                 <div class="ai-field">
                   <div class="ai-label">Sentinel Likelihood</div>
                   <div class="ai-like">
-                    <span class="dot ${ev.sentinelLikelihood}"></span>
+                    ${harmBadge(ev.sentinelLikelihood)}
                     <span class="ai-val">(${ev.sentinelConfidence}% confidence)</span>
                   </div>
                 </div>
@@ -964,7 +964,7 @@ function hideTooltip() {
   document.getElementById('descTooltip').style.display = 'none';
 }
 
-let harmColVisible = true;
+let harmColVisible = false;
 function toggleHarmCol() {
   harmColVisible = !harmColVisible;
   const table = document.querySelector('table');
@@ -975,6 +975,14 @@ function toggleHarmCol() {
     ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Harm Level`
     : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Harm Level`;
 }
+// Initialize hidden state on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const table = document.querySelector('table');
+  table.classList.add('hide-harm');
+  const btn = document.getElementById('harmToggleBtn');
+  btn.classList.add('hidden-state');
+  btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Harm Level`;
+});
 
 renderTable(events);
 </script>
